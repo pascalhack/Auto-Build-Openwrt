@@ -75,7 +75,7 @@ jobs:
          git clone https://github.com/tuanqing/mknop
          cd mknop
          cp ../$REPO_NAME/bin/targets/*/*/*.tar.gz openwrt
-         sudo ./gen_openwrt -d -k latest
+         sudo ./gen_openwrt -d -s 880 -k latest
          devices=("phicomm-n1" "vplus" "beikeyun" "l1pro" "s905x3")
           cd out
           for x in ${devices[*]}; do
@@ -89,7 +89,13 @@ jobs:
       uses: actions/upload-artifact@main
       with:
        name: ${{ env.firmware_phicomm-n1 }}
-       path: out/phicomm-n1  
+       path: out/phicomm-n1 
+    - name: Upload GD N1-img
+      run: |
+        cd mknop/out/phicomm-n1
+        tmp=$(find . -name "*.img")
+        echo $tmp
+        sudo rclone sync $tmp GD:bin 
     - name: Upload GD packages
       run: |
         cd $REPO_NAME/bin/packages/*
@@ -101,7 +107,10 @@ jobs:
     - name: Upload GD N1-bin
       run: |
         cd $REPO_NAME/bin/targets/*/*
+        rm -rf packages
+        rm -rf openwrt-armvirt-64-default-rootfs.tar.gz
         sudo tar czvf N1-bin-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz *  
         tmp=$(find . -name "*.tar.gz")
         echo $tmp
         sudo rclone sync $tmp GD:bin 
+        
