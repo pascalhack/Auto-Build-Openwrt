@@ -27,6 +27,17 @@ jobs:
         sudo -E apt-get -qq install $(curl -fsSL git.io/depends-ubuntu-1804)
         sudo -E apt-get -qq autoremove --purge
         sudo -E apt-get -qq clean
+    - name: Configure rclone
+      run: |
+        sudo curl https://rclone.org/install.sh | sudo bash
+        sudo mkdir -p /home/runner/.config/rclone
+        sudo cat > rclone.conf << EOF
+          ${rc_rclone}
+        EOF
+        sudo mkdir -p /mnt/gdrive
+        sudo cp rclone.conf /home/runner/.config/rclone/  
+        sudo rm -rf /home/runner/work/openwrt-CI/openwrt-CI/rclone.conf
+        sudo rclone mount GD: /mnt/gdrive --copy-links --allow-other --allow-non-empty --umask 000 --daemon &
     - name: Clone source code
       env: 
        REPO_URL: https://github.com/coolsnowwolf/lede
@@ -34,15 +45,63 @@ jobs:
        REPO_NAME: openwrt
       run: | 
          git clone --depth 1 $REPO_URL -b $REPO_BRANCH $REPO_NAME
-         cd $REPO_NAME/package
-         git clone https://github.com/Lienol/openwrt-package Lienol
+
     - name: Update & Install feeds
       run: |
         cd $REPO_NAME 
         ./scripts/feeds update -a
         ./scripts/feeds install -a
-    - name: Start SSH via tmate
-      uses: P3TERX/ssh2actions@main
-      env:
-         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    - name: Configuration Customization - Build_N1
+      run: |
+        [ -e $FEEDS_CONF ] && mv $FEEDS_CONF $REPO_NAME/feeds.conf.default
+        chmod +x $DIY_SH
+        [ -e files ] && mv files $REPO_NAME/files
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $REPO_NAME/.config
+        cd $REPO_NAME
+        $GITHUB_WORKSPACE/$DIY_SH
+        make defconfig
+    - name: Download package
+      run: |
+        cd $REPO_NAME
+        make download -j8
+        find dl -size -1024c -exec rm -f {} \;
+        
+    - name: Compile the firmware
+      run: |
+        cd $REPO_NAME
+        make -j$(nproc) || make -j8 V=s
+    - name: img packaging
+      run: | 
+         git clone https://github.com/tuanqing/mknop
+         cd mknop
+         cp ../$REPO_NAME/bin/targets/*/*/*.tar.gz openwrt
+         sudo ./gen_openwrt -d -k latest
+         devices=("phicomm-n1" "vplus" "beikeyun" "l1pro" "s905x3")
+          cd out
+          for x in ${devices[*]}; do
+            cd $x
+            filename=$(ls | awk -F '.img' '{print $1}')
+            gzip *.img
+            cd ../
+            echo "firmware_$x=$filename" >> $GITHUB_ENV
+          done
+    - name: Upload firmware @ phicomm n1
+      uses: actions/upload-artifact@main
+      with:
+       name: ${{ env.firmware_phicomm-n1 }}
+       path: out/phicomm-n1  
+    - name: Upload GD packages
+      run: |
+        cd $REPO_NAME/bin/packages/*
+        sudo tar czvf N1-packages-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz * 
+        tmp=$(find . -name "*.tar.gz")
+        echo $tmp
+        sudo rclone sync $tmp GD:ipk
+        
+    - name: Upload GD N1-bin
+      run: |
+        cd $REPO_NAME/bin/targets/*/*
+        sudo tar czvf N1-bin-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz *  
+        tmp=$(find . -name "*.tar.gz")
+        echo $tmp
+        sudo rclone sync $tmp GD:bin 
