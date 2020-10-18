@@ -63,26 +63,26 @@ jobs:
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;  
         make -j8 V=s
-    - name: Make img
-      run: |
-       git clone https://github.com/tuanqing/mknop
-       cd mknop 
-       cp $REPO_NAME/bin/targets/*/*/*.tar.gz openwrt
-       sudo ./gen_openwrt -d -s 880 -k latest
-       devices=("phicomm-n1")
-       cd out
-       for x in ${devices[*]}; do
-       cd $x
-       filename=$(ls | awk -F '.img' '{print $1}')
-       gzip *.img
-       cd ../
-       echo "firmware_$x=$filename" >> $GITHUB_ENV
-       done   
-    - name: Upload firmware @ phicomm n1
-      uses: actions/upload-artifact@main
-      with:
-       name: ${{ env.firmware_phicomm-n1 }}
-       path: out/phicomm-n1  
+   # - name: Make img
+    #  run: |
+    #   git clone https://github.com/tuanqing/mknop
+    #   cd mknop 
+    #   cp $REPO_NAME/bin/targets/*/*/*.tar.gz openwrt
+    #   sudo ./gen_openwrt -d -s 880 -k latest
+     #  devices=("phicomm-n1")
+      # cd out
+     #  for x in ${devices[*]}; do
+    #   cd $x
+    #   filename=$(ls | awk -F '.img' '{print $1}')
+     #  gzip *.img
+    #   cd ../
+     #  echo "firmware_$x=$filename" >> $GITHUB_ENV
+     #  done   
+   # - name: Upload firmware @ phicomm n1
+     # uses: actions/upload-artifact@main
+    #  with:
+    #   name: ${{ env.firmware_phicomm-n1 }}
+    #   path: out/phicomm-n1  
 
     - name: Start SSH via tmate
       uses: P3TERX/ssh2actions@main
