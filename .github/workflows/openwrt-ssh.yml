@@ -44,10 +44,10 @@ jobs:
     - name: Download openwrt
       run: | 
         wget  $REPO_URL
-        tmp=$(find -name N1*)
+        tmp=$(find -name openwrtN1*)
         echo $tmp
         mkdir -p $REPO_NAME
-        sudo tar xvf $tmp -C $REPO_NAME
+        sudo tar zxvf $tmp -C $REPO_NAME
         sudo rm -rf $tmp
     - name: Update & Install feeds
       run: |
