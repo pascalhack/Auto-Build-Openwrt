@@ -5,6 +5,7 @@ on:
   schedule:
     - cron: 0 21 * * 5
 env:
+  rc_rclone: ${{ secrets.RCONFIG }}
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
   REPO_NAME: openwrt
@@ -34,7 +35,7 @@ jobs:
         sudo curl https://rclone.org/install.sh | sudo bash
         sudo mkdir -p /home/runner/.config/rclone
         sudo cat > rclone.conf << EOF
-         ${rc_rclone}   
+          ${rc_rclone}
         EOF
         sudo mkdir -p /mnt/gdrive
         sudo cp rclone.conf /home/runner/.config/rclone/  
