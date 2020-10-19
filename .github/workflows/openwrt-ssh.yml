@@ -47,7 +47,7 @@ jobs:
         tmp=$(find -name N1*)
         echo $tmp
         mkdir -p $REPO_NAME
-        sudo tar xzvf $tmp -C $REPO_NAME
+        sudo tar xvf $tmp -C $REPO_NAME
         sudo rm -rf $tmp
     - name: Update & Install feeds
       run: |
