@@ -89,7 +89,7 @@ jobs:
       uses: actions/upload-artifact@main
       with:
        name: ${{ env.firmware_phicomm-n1 }}
-       path: out/phicomm-n1 
+       path: ./mknop/out/phicomm-n1 
     - name: Upload GD N1-img
       run: |
         cd mknop/out/phicomm-n1
