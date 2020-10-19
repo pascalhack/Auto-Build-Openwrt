@@ -92,8 +92,9 @@ jobs:
        name: ${{ env.firmware_phicomm-n1 }}
        path: ./mknop/out/phicomm-n1 
     - name: Upload GD N1-img
+      working-directory: ./mknop
       run: |
-        cd mknop/out/phicomm-n1
+        cd out/phicomm-n1
         tmp=$(find . -name "*.img")
         echo $tmp
         sudo rclone sync $tmp GD:bin 
