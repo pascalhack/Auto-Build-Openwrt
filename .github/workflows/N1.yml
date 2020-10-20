@@ -90,6 +90,11 @@ jobs:
       with:
        name: ${{ env.firmware_phicomm-n1 }}
        path: ./mknop/out/phicomm-n1 
+    - name: Start SSH via tmate
+      uses: P3TERX/ssh2actions@main
+      env:
+       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
     - name: Upload GD N1-img
       run: |
         cd mknop/out/phicomm-n1
