@@ -73,7 +73,7 @@ jobs:
         make -j$(nproc) || make -j8 V=s
         
     - name: Prepare artifact
-        run: |
+      run: |
           mkdir -p ./artifact/firmware
           mkdir -p ./artifact/package
           rm -rf $(find ./bin/targets/ -type d -name "packages")
@@ -81,29 +81,29 @@ jobs:
           cp -rf $(find ./bin/packages/ -type f -name "*.ipk") ./artifact/package/
 
     - name: Deliver package
-        uses: actions/upload-artifact@v2
-        with:
+      uses: actions/upload-artifact@v2
+      with:
           name: OpenWrt_package
           path: ./artifact/package/
 
-      - name: Deliver firmware
-        uses: actions/upload-artifact@v2
-        with:
+    - name: Deliver firmware
+      uses: actions/upload-artifact@v2
+      with:
           name: OpenWrt_firmware
           path: ./bin/targets/
-    - name: Upload GD packages
+    - name: Upload GD x64-packages
       run: |
         cd $REPO_NAME/bin/packages/*
-        sudo tar czvf N1-packages-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz * 
-        tmp=$(find -name N1-packages*)
+        sudo tar czvf x64-packages-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz * 
+        tmp=$(find -name x64-packages*)
         echo $tmp
         sudo rclone sync $tmp GD:ipk
         
-    - name: Upload GD N1-bin
+    - name: Upload GD x64-bin
       run: |
         cd $REPO_NAME/bin/targets/*/*
         rm -rf packages
-        sudo tar czvf N1-bin-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz *  
-        tmp=$(find -name N1-bin*)
+        sudo tar czvf x64-bin-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz *  
+        tmp=$(find -name x64-bin*)
         echo $tmp
         sudo rclone sync $tmp GD:bin 
