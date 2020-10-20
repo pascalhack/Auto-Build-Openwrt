@@ -1,0 +1,109 @@
+name: openwrt-x64
+on:
+  workflow_dispatch:
+  repository_dispatch:
+  schedule:
+    - cron: 0 21 * * 5
+env:
+  rc_rclone: ${{ secrets.RCONFIG }}
+  REPO_URL: ${{ secrets.URLS}}
+  REPO_BRANCH: master
+  REPO_NAME: openwrt
+  CONFIG_FILE: x64.config
+  DIY_SH: diy.sh
+  TZ: Asia/Shanghai
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+    - name: Initialization environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+       docker rmi `docker images -q`
+       sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /usr/lib/jvm /opt/ghc
+       sudo -E apt-get -qq update
+       sudo -E apt-get -qq install $(curl -fsSL git.io/depends-ubuntu-1804)
+       sudo -E apt-get -qq autoremove --purge
+       sudo -E apt-get -qq clean
+       sudo timedatectl set-timezone "$TZ"
+    - name: Configure rclone
+      run: |
+        sudo curl https://rclone.org/install.sh | sudo bash
+        sudo mkdir -p /home/runner/.config/rclone
+        sudo cat > rclone.conf << EOF
+          ${rc_rclone}
+        EOF
+        sudo mkdir -p /mnt/gdrive
+        sudo cp rclone.conf /home/runner/.config/rclone/  
+        sudo rm -rf ~/work/Auto-Build-Openwrt/Auto-Build-Openwrt/rclone.conf
+        sudo rclone mount GD: /mnt/gdrive --copy-links --allow-other --allow-non-empty --umask 000 --daemon & 
+        df -h
+    - name: Download openwrt
+      run: | 
+        wget  $REPO_URL
+        tmp=$(find -name openwrtN1*)
+        echo $tmp
+        mkdir -p $REPO_NAME
+        sudo tar zxvf $tmp -C $REPO_NAME
+        sudo rm -rf $tmp
+    - name: Update & Install feeds
+      run: |
+        cd $REPO_NAME 
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
+    - name: Configuration Customization - Build_X64
+      run: |
+        chmod +x $DIY_SH
+        [ -e files ] && mv files $REPO_NAME/files
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $REPO_NAME/.config
+        cd $REPO_NAME
+        make defconfig
+    - name: Download package
+      run: |
+        cd $REPO_NAME
+        make download -j8
+        find dl -size -1024c -exec rm -f {} \;
+        
+    - name: Compile the firmware
+      run: |
+        cd $REPO_NAME
+        make -j$(nproc) || make -j8 V=s
+        
+    - name: Prepare artifact
+        run: |
+          mkdir -p ./artifact/firmware
+          mkdir -p ./artifact/package
+          rm -rf $(find ./bin/targets/ -type d -name "packages")
+          cp -rf $(find ./bin/targets/ -type f) ./artifact/firmware/
+          cp -rf $(find ./bin/packages/ -type f -name "*.ipk") ./artifact/package/
+
+    - name: Deliver package
+        uses: actions/upload-artifact@v2
+        with:
+          name: OpenWrt_package
+          path: ./artifact/package/
+
+      - name: Deliver firmware
+        uses: actions/upload-artifact@v2
+        with:
+          name: OpenWrt_firmware
+          path: ./bin/targets/
+    - name: Upload GD packages
+      run: |
+        cd $REPO_NAME/bin/packages/*
+        sudo tar czvf N1-packages-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz * 
+        tmp=$(find -name N1-packages*)
+        echo $tmp
+        sudo rclone sync $tmp GD:ipk
+        
+    - name: Upload GD N1-bin
+      run: |
+        cd $REPO_NAME/bin/targets/*/*
+        rm -rf packages
+        sudo tar czvf N1-bin-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz *  
+        tmp=$(find -name N1-bin*)
+        echo $tmp
+        sudo rclone sync $tmp GD:bin 
