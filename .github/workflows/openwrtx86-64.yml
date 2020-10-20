@@ -5,7 +5,7 @@ on:
     types: published
   push:
     branches:
-      - main
+      - openwrt-x64
     paths:
       - 'x64.config'
   schedule:
@@ -55,7 +55,7 @@ jobs:
     - name: Download openwrt
       run: | 
         wget  $REPO_URL
-        tmp=$(find -name openwrtN1*)
+        tmp=$(find -name openwrtx64*)
         echo $tmp
         mkdir -p $REPO_NAME
         sudo tar zxvf $tmp -C $REPO_NAME
