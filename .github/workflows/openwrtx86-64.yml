@@ -62,59 +62,59 @@ jobs:
         sudo rm -rf $tmp
     - name: Update & Install feeds
       run: |
-        cd $REPO_NAME 
-        ./scripts/feeds update -a
-        ./scripts/feeds install -a
+       cd $REPO_NAME 
+       ./scripts/feeds update -a
+       ./scripts/feeds install -a
     - name: Configuration Customization - Build_X64
       run: |
-        chmod +x $DIY_SH
-        [ -e files ] && mv files $REPO_NAME/files
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $REPO_NAME/.config
-        cd $REPO_NAME
-        make defconfig
+       chmod +x $DIY_SH
+       [ -e files ] && mv files $REPO_NAME/files
+       [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $REPO_NAME/.config
+       cd $REPO_NAME
+       make defconfig
     - name: Download package
       run: |
-        cd $REPO_NAME
-        make download -j8
-        find dl -size -1024c -exec rm -f {} \;
+       cd $REPO_NAME
+       make download -j8
+       find dl -size -1024c -exec rm -f {} \;
         
     - name: Compile the firmware
       run: |
-        cd $REPO_NAME
-        make -j$(nproc) || make -j8 V=s
+       cd $REPO_NAME
+       make -j$(nproc) || make -j8 V=s
         
     - name: Prepare artifact
       run: |
-          mkdir -p ./artifact/firmware
-          mkdir -p ./artifact/package
-          rm -rf $(find ./bin/targets/ -type d -name "packages")
-          cp -rf $(find ./bin/targets/ -type f) ./artifact/firmware/
-          cp -rf $(find ./bin/packages/ -type f -name "*.ipk") ./artifact/package/
+       mkdir -p ./artifact/firmware
+       mkdir -p ./artifact/package
+       rm -rf $(find ./bin/targets/ -type d -name "packages")
+       cp -rf $(find ./bin/targets/ -type f) ./artifact/firmware/
+       cp -rf $(find ./bin/packages/ -type f -name "*.ipk") ./artifact/package/
 
     - name: Deliver package
       uses: actions/upload-artifact@v2
       with:
-          name: OpenWrt_package
-          path: ./artifact/package/
+        name: OpenWrt_package
+        path: ./artifact/package/
 
     - name: Deliver firmware
       uses: actions/upload-artifact@v2
       with:
-          name: OpenWrt_firmware
-          path: ./bin/targets/
+        name: OpenWrt_firmware
+        path: ./bin/targets/
     - name: Upload GD x64-packages
       run: |
-        cd $REPO_NAME/bin/packages/*
-        sudo tar czvf x64-packages-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz * 
-        tmp=$(find -name x64-packages*)
-        echo $tmp
-        sudo rclone sync $tmp GD:ipk
+       cd $REPO_NAME/bin/packages/*
+       sudo tar czvf x64-packages-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz * 
+       tmp=$(find -name x64-packages*)
+       echo $tmp
+       sudo rclone sync $tmp GD:ipk
         
     - name: Upload GD x64-bin
       run: |
-        cd $REPO_NAME/bin/targets/*/*
-        rm -rf packages
-        sudo tar czvf x64-bin-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz *  
-        tmp=$(find -name x64-bin*)
-        echo $tmp
-        sudo rclone sync $tmp GD:bin 
+       cd $REPO_NAME/bin/targets/*/*
+       rm -rf packages
+       sudo tar czvf x64-bin-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz *  
+       tmp=$(find -name x64-bin*)
+       echo $tmp
+       sudo rclone sync $tmp GD:bin 
