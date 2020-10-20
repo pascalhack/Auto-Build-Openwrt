@@ -91,23 +91,18 @@ jobs:
       with:
        name: ${{ env.firmware_phicomm-n1 }}
        path: ./mknop/out/phicomm-n1 
-    - name: Start SSH via tmate
-      uses: P3TERX/ssh2actions@main
-      env:
-       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
     - name: Upload GD N1-img
       working-directory: ./mknop
       run: |
         cd out/phicomm-n1
-        tmp=$(find . -name "*.img")
+        tmp=$(find -name 20*)
         echo $tmp
         sudo rclone sync $tmp GD:bin 
     - name: Upload GD packages
       run: |
         cd $REPO_NAME/bin/packages/*
         sudo tar czvf N1-packages-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz * 
-        tmp=$(find . -name "*.tar.gz")
+        tmp=$(find -name N1-packages*)
         echo $tmp
         sudo rclone sync $tmp GD:ipk
         
@@ -115,8 +110,7 @@ jobs:
       run: |
         cd $REPO_NAME/bin/targets/*/*
         rm -rf packages
-        rm -rf openwrt-armvirt-64-default-rootfs.tar.gz
         sudo tar czvf N1-bin-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz *  
-        tmp=$(find . -name "*.tar.gz")
+        tmp=$(find -name N1-bin*)
         echo $tmp
         sudo rclone sync $tmp GD:bin 
