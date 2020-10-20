@@ -1,6 +1,7 @@
 name: openwrt-x64
 on:
   workflow_dispatch:
+   types: [opened, edited, milestoned,deleted]
   repository_dispatch:
   schedule:
     - cron: 0 21 * * 5
