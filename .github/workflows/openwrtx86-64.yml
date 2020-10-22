@@ -60,6 +60,12 @@ jobs:
         mkdir -p $REPO_NAME
         sudo tar zxvf $tmp -C $REPO_NAME
         sudo rm -rf $tmp
+
+    - name: Start SSH via tmate
+      uses: P3TERX/ssh2actions@main
+      env:
+         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}     
     - name: Update & Install feeds
       run: |
        cd $REPO_NAME 
