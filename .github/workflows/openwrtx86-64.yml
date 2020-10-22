@@ -5,7 +5,7 @@ on:
     types: published
   push:
     branches:
-      - main
+      - openwrtx86-64
     paths:
       - 'x64.config'
   schedule:
