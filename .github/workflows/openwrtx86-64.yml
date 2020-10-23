@@ -68,25 +68,25 @@ jobs:
          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}     
     - name: Update & Install feeds
       run: |
-       cd $REPO_NAME 
+       cd $REPO_NAME/lede 
        ./scripts/feeds update -a
        ./scripts/feeds install -a
     - name: Configuration Customization - Build_X64
       run: |
        chmod +x $DIY_SH
        [ -e files ] && mv files $REPO_NAME/files
-       [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $REPO_NAME/.config
-       cd $REPO_NAME
+       [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $REPO_NAME/lede.config
+       cd $REPO_NAME/lede
        make defconfig
     - name: Download package
       run: |
-       cd $REPO_NAME
+       cd $REPO_NAME/lede
        make download -j8
        find dl -size -1024c -exec rm -f {} \;
         
     - name: Compile the firmware
       run: |
-       cd $REPO_NAME
+       cd $REPO_NAME/lede
        make -j$(nproc) || make -j8 V=s
         
     - name: Prepare artifact
@@ -110,7 +110,7 @@ jobs:
         path: ./bin/targets/
     - name: Upload GD x64-packages
       run: |
-       cd $REPO_NAME/bin/packages/*
+       cd $REPO_NAME/lede/bin/packages/*
        sudo tar czvf x64-packages-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz * 
        tmp=$(find -name x64-packages*)
        echo $tmp
@@ -118,7 +118,7 @@ jobs:
         
     - name: Upload GD x64-bin
       run: |
-       cd $REPO_NAME/bin/targets/*/*
+       cd $REPO_NAME/lede/bin/targets/*/*
        rm -rf packages
        sudo tar czvf x64-bin-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz *  
        tmp=$(find -name x64-bin*)
