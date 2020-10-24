@@ -1,18 +1,10 @@
 name: Auto-Build-Openwrtx64
 
 on:
+  workflow_dispatch:
   repository_dispatch:
-  release:
-    types: published
-  push:
-    branches:
-      - openwrtx64
-    paths:
-      - 'x64.config'
   schedule:
-    - cron: 0 8 * * 5
-  watch:
-    types: started
+    - cron: 0 21 * * 5
 
 env:
   rc_rclone: ${{ secrets.RCONFIG }}
@@ -138,3 +130,11 @@ jobs:
         tmp=$(find . -name "*.tar.gz")
         echo $tmp
         sudo rclone sync $tmp GD:bin 
+    - name: packing op
+      run: |
+        cd openwrt
+        rm -rf bin
+        sudo tar czvf openwrtx64-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz *  
+        tmp=$(find -name openwrtx64*)
+        echo $tmp
+        sudo rclone sync $tmp GD:dl 
