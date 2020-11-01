@@ -86,11 +86,11 @@ jobs:
             cd ../
             echo "firmware_$x=$filename" >> $GITHUB_ENV
           done
-    - name: Upload firmware @ phicomm n1
-      uses: actions/upload-artifact@main
-      with:
-       name: ${{ env.firmware_phicomm-n1 }}
-       path: ./mknop/out/phicomm-n1 
+    #- name: Upload firmware @ phicomm n1
+    #  uses: actions/upload-artifact@main
+   #   with:
+      # name: ${{ env.firmware_phicomm-n1 }}
+     #  path: ./mknop/out/phicomm-n1 
     - name: Upload GD N1-img
       working-directory: ./mknop
       run: |
