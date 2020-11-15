@@ -106,7 +106,7 @@ jobs:
        sudo tar czvf x64-packages-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz * 
        tmp=$(find -name x64-packages*)
        echo $tmp
-       sudo rclone sync $tmp GD:ipk
+       sudo rclone sync $tmp GD:bin/IPK
         
     - name: Upload GD x64-bin
       run: |
@@ -115,4 +115,4 @@ jobs:
        sudo tar czvf x64-bin-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz *  
        tmp=$(find -name x64-bin*)
        echo $tmp
-       sudo rclone sync $tmp GD:bin 
+       sudo rclone sync $tmp GD:bin/X64 
