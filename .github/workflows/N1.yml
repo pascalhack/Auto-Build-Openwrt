@@ -58,7 +58,7 @@ jobs:
         [ -e files ] && mv files $REPO_NAME/files
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $REPO_NAME/.config
         chmod +x $DIY_SH
-        ../$DIY_SH
+        ./$DIY_SH
         cd $REPO_NAME
         make defconfig
     - name: Download package
