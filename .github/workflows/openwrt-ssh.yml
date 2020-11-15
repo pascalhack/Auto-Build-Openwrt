@@ -105,7 +105,7 @@ jobs:
         sudo tar czvf N1-packages-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz * 
         tmp=$(find -name N1-packages*)
         echo $tmp
-        sudo rclone sync $tmp GD:ipk
+        sudo rclone sync $tmp GD:bin/IPK
         
     - name: Upload GD N1-bin
       run: |
@@ -114,4 +114,4 @@ jobs:
         sudo tar czvf N1-bin-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz *  
         tmp=$(find -name N1-bin*)
         echo $tmp
-        sudo rclone sync $tmp GD:bin 
+        sudo rclone sync $tmp GD:bin/N1 
