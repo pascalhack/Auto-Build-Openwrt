@@ -78,7 +78,6 @@ jobs:
         mv $DIY_SH $REPO_NAME/diy.sh
         cd $REPO_NAME
         ./diy.sh
-        $GITHUB_WORKSPACE/$DIY_SH
         make defconfig
     - name: Download package
       run: |
