@@ -10,7 +10,7 @@ on:
   
   watch:
     types: [started]
-    env:
+env:
   rc_rclone: ${{ secrets.RCONFIG }}
   REPO_URL: ${{ secrets.URL}}
   REPO_BRANCH: master
