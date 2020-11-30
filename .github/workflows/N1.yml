@@ -58,8 +58,7 @@ jobs:
         ./scripts/feeds install -a
     - name: Configuration Customization - Build_N1
       run: |
-        [ -e files ] && mv files $REPO_NAME/files
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $REPO_NAME/.config
+        mv $CONFIG_FILE $REPO_NAME/.config
         chmod +x $DIY_SH
         mv $DIY_SH $REPO_NAME/diy.sh
         cd $REPO_NAME
