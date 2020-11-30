@@ -59,8 +59,9 @@ jobs:
     - name: Configuration Customization - Build_N1
       run: |
         cat > diy.sh << EOF
-          - name: ${DIY_SH}
+        ${DIY_SH}
         EOF  
+        
         mv $CONFIG_FILE $REPO_NAME/.config
         chmod +x diy.sh
         mv diy.sh $REPO_NAME/diy.sh
