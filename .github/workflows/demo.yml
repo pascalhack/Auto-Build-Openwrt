@@ -12,7 +12,7 @@ on:
     types: [started]
 env:
   rc_rclone: ${{ secrets.RCONFIG }}
-  REPO_URL: ${{ secrets.URL}}
+  REPO_URL:  https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
   REPO_NAME: openwrt
   CONFIG_FILE: N1.config
