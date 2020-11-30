@@ -10,7 +10,7 @@ env:
   REPO_BRANCH: master
   REPO_NAME: openwrt
   CONFIG_FILE: N1.config
-  DIY_SH: diy.sh
+  DIY_SH: ${{ secrets.DIY_SH }}
   TZ: Asia/Shanghai
 jobs:
   build:
@@ -58,9 +58,12 @@ jobs:
         ./scripts/feeds install -a
     - name: Configuration Customization - Build_N1
       run: |
+        cat > diy.sh << EOF
+          - name: ${DIY_SH}
+        EOF  
         mv $CONFIG_FILE $REPO_NAME/.config
-        chmod +x $DIY_SH
-        mv $DIY_SH $REPO_NAME/diy.sh
+        chmod +x diy.sh
+        mv diy.sh $REPO_NAME/diy.sh
         cd $REPO_NAME
         ./diy.sh
         make defconfig
