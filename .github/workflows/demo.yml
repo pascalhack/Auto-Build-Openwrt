@@ -50,7 +50,7 @@ jobs:
     - name: Clone source code
       run: | 
          git clone --depth 1 $REPO_URL -b $REPO_BRANCH $REPO_NAME
-         git clone https://github.com/Lienol/openwrt-package $REPO_NAME/package/lintelstm
+         git clone https://github.com/harry3633/openwrt-package $REPO_NAME/package/lintelstm
          git clone https://github.com/jerrykuku/lua-maxminddb $REPO_NAME/package/lintelstm/lienol/lua-maxminddb
          git clone https://github.com/jerrykuku/luci-app-vssr $REPO_NAME/package/lintelstm/lienol/luci-app-vssr
          rm -rf $REPO_NAME/package/lintelstm/lienol/luci-app-passwall
