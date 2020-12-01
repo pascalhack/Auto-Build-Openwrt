@@ -44,6 +44,7 @@ jobs:
       run: | 
          git clone --depth 1 $REPO_URL -b $REPO_BRANCH $REPO_NAME
          git clone https://github.com/harry3633/openwrt-package $REPO_NAME/package/lintelstm
+         git clone https://github.com/kenzok8/openwrt-packages $REPO_NAME/package/lintelstm
          git clone https://github.com/tuanqing/install-program $REPO_NAME/package/install-program
          git clone https://github.com/jerrykuku/lua-maxminddb $REPO_NAME/package/lintelstm/lienol/lua-maxminddb
          git clone https://github.com/jerrykuku/luci-app-vssr $REPO_NAME/package/lintelstm/lienol/luci-app-vssr
@@ -61,7 +62,6 @@ jobs:
         cat > diy.sh << EOF
         ${DIY_SH}
         EOF  
-        
         mv $CONFIG_FILE $REPO_NAME/.config
         chmod +x diy.sh
         mv diy.sh $REPO_NAME/diy.sh
