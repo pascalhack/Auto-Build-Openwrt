@@ -49,7 +49,7 @@ jobs:
          git clone https://github.com/jerrykuku/luci-app-vssr $REPO_NAME/package/lintelstm/luci-app-vssr
          git clone https://github.com/esirplayground/luci-app-v2ray-server  $REPO_NAME/package/lintelstm/luci-app-v2ray-server
          git clone https://github.com/kenzok8/openwrt-packages $REPO_NAME/package/lintelstm/path
-         mv lede/package/lintelstm/path/* $REPO_NAME/package/lintelstm
+         mv $REPO_NAME/package/lintelstm/path/* $REPO_NAME/package/lintelstm
          rm -rf $REPO_NAME/package/lintelstm/path
     - name: Update & Install feeds
       run: |
