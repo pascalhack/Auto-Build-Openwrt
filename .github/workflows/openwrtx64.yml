@@ -13,12 +13,7 @@ env:
   REPO_NAME: openwrt
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: x64.config
-  DIY_SH: diy.sh
-  SSH_ACTIONS: false
-  UPLOAD_BIN_DIR: false
-  UPLOAD_FIRMWARE: true
-  UPLOAD_COWTRANSFER: false
-  UPLOAD_WETRANSFER: false
+  DIY_SH: ${{ secrets.DIY_SH }}
   TZ: Asia/Shanghai
 
 jobs:
@@ -35,15 +30,14 @@ jobs:
         DEBIAN_FRONTEND: noninteractive
       run: |
        docker rmi `docker images -q`
-       sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d
-       sudo -E apt-get -y purge azure-cli ghc* zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* mysql* php* android*
+       echo "Deleting files, please wait ..."
+       sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php
+       sudo -E apt-get -y purge azure-cli ghc* zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* mysql* php*
        sudo -E apt-get update
-       sudo -E apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler antlr3 gperf swig
+       sudo -E apt-get -qq install $(curl -fsSL git.io/depends-ubuntu-1804)
        sudo -E apt-get -y autoremove --purge
        sudo -E apt-get clean
        sudo timedatectl set-timezone "$TZ"
-       sudo mkdir -p /workdir
-       sudo chown $USER:$GROUPS /workdir
 
     - name: Configure rclone
       run: |
@@ -57,12 +51,16 @@ jobs:
         sudo rm -rf /home/runner/work/openwrt-CI/openwrt-CI/rclone.conf
         sudo rclone mount GD: /mnt/gdrive --copy-links --allow-other --allow-non-empty --umask 000 --daemon &
     - name: Clone source code
-      working-directory: /workdir
-      run: |
-        df -hT $PWD
-        git clone --depth 1 $REPO_URL -b $REPO_BRANCH $REPO_NAME
-        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/$REPO_NAME
-
+      run: | 
+         git clone --depth 1 $REPO_URL -b $REPO_BRANCH $REPO_NAME
+         git clone https://github.com/tuanqing/install-program $REPO_NAME/package/install-program
+         git clone https://github.com/kenzok8/small $REPO_NAME/package/lintelstm
+         git clone https://github.com/jerrykuku/lua-maxminddb $REPO_NAME/package/lintelstm/lua-maxminddb
+         git clone https://github.com/jerrykuku/luci-app-vssr $REPO_NAME/package/lintelstm/luci-app-vssr
+         git clone https://github.com/esirplayground/luci-app-v2ray-server  $REPO_NAME/package/lintelstm/luci-app-v2ray-server
+         git clone https://github.com/kenzok8/openwrt-packages $REPO_NAME/package/lintelstm/path
+         mv $REPO_NAME/package/lintelstm/path/* $REPO_NAME/package/lintelstm
+         rm -rf $REPO_NAME/package/lintelstm/path
     - name: Update & Install feeds
       run: |
        cd $REPO_NAME 
@@ -71,50 +69,34 @@ jobs:
        
     - name: Configuration Customization - Build_x64
       run: |
-        [ -e $FEEDS_CONF ] && mv $FEEDS_CONF $REPO_NAME/feeds.conf.default
-        [ -e files ] && mv files $REPO_NAME/files
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $REPO_NAME/.config
-        chmod +x $DIY_SH
-        mv $DIY_SH $REPO_NAME/diy.sh
+        cat > diy.sh << EOF
+        ${DIY_SH}
+        EOF
+        
+        mv $CONFIG_FILE $REPO_NAME/.config
+        chmod +x diy.sh
+        mv diy.sh $REPO_NAME/diy.sh
         cd $REPO_NAME
         ./diy.sh
         make defconfig
     - name: Download package
       run: |
         cd $REPO_NAME
-        make download -j8
+        make download -j$(nproc)
+        find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
         
     - name: Compile the firmware
       run: |
-        cd openwrt
-        make -j$(nproc) || make -j8 V=s
-        echo "::set-output name=status::success"
-        grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
-        [ -s DEVICE_NAME ] && echo "::set-env name=DEVICE_NAME::_$(cat DEVICE_NAME)"
-        echo "::set-env name=FILE_DATE::_$(date +"%Y%m%d%H%M")"
-
-    - name: Upload bin directory
-      uses: actions/upload-artifact@main
-      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
+        cd $REPO_NAME
+        echo -e "$(nproc) thread build."
+        make -j$(nproc) V=s
+             
+    - name : Upload artifact
+      uses: actions/upload-artifact@master
       with:
-        name: OpenWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
-        path: openwrt/bin
-
-    - name: Organize files
-      id: organize
-      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
-      run: |
-        cd openwrt/bin/targets/*/*
-        rm -rf packages
-        echo "::set-env name=FIRMWARE::$PWD"
-        echo "::set-output name=status::success"
-    - name: Upload firmware directory
-      uses: actions/upload-artifact@main
-      if: steps.organize.outputs.status == 'success' && !cancelled()
-      with:
-        name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
-        path: ${{ env.FIRMWARE }}
+        name: $REPO_NAME
+        path: $REPO_NAME/bin/targets/*/*
     
     - name: Upload GD packages
       run: |
