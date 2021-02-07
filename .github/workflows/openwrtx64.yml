@@ -57,10 +57,10 @@ jobs:
          git clone https://github.com/kenzok8/small $REPO_NAME/package/lintelstm
          git clone https://github.com/esirplayground/luci-app-v2ray-server  $REPO_NAME/package/lintelstm/luci-app-v2ray-server
          git clone https://github.com/kenzok8/openwrt-packages $REPO_NAME/package/lintelstm/path
-         cp $REPO_NAME/package/lintelstm/path/* $REPO_NAME/package/lintelstm
+         cp -r $REPO_NAME/package/lintelstm/path/* $REPO_NAME/package/lintelstm
          rm -rf $REPO_NAME/package/lintelstm/path
          git clone https://github.com/kenzok8/small $REPO_NAME/package/lintelstm/path1
-         cp $REPO_NAME/package/lintelstm/path1/* $REPO_NAME/package/lintelstm
+         cp -r $REPO_NAME/package/lintelstm/path1/* $REPO_NAME/package/lintelstm
          rm -rf $REPO_NAME/package/lintelstm/path1  
     - name: Update & Install feeds
       run: |
