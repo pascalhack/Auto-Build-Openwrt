@@ -61,6 +61,9 @@ jobs:
          git clone https://github.com/kenzok8/openwrt-packages $REPO_NAME/package/lintelstm/path
          mv $REPO_NAME/package/lintelstm/path/* $REPO_NAME/package/lintelstm
          rm -rf $REPO_NAME/package/lintelstm/path
+         git clone https://github.com/kenzok8/small $REPO_NAME/package/lintelstm/path1
+         mv $REPO_NAME/package/lintelstm/path1/* $REPO_NAME/package/lintelstm
+         rm -rf $REPO_NAME/package/lintelstm/path1  
     - name: Update & Install feeds
       run: |
        cd $REPO_NAME 
