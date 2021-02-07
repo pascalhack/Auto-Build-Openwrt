@@ -55,8 +55,6 @@ jobs:
          git clone --depth 1 $REPO_URL -b $REPO_BRANCH $REPO_NAME
          git clone https://github.com/tuanqing/install-program $REPO_NAME/package/install-program
          git clone https://github.com/kenzok8/small $REPO_NAME/package/lintelstm
-         git clone https://github.com/jerrykuku/lua-maxminddb $REPO_NAME/package/lintelstm/lua-maxminddb
-         git clone https://github.com/jerrykuku/luci-app-vssr $REPO_NAME/package/lintelstm/luci-app-vssr
          git clone https://github.com/esirplayground/luci-app-v2ray-server  $REPO_NAME/package/lintelstm/luci-app-v2ray-server
          git clone https://github.com/kenzok8/openwrt-packages $REPO_NAME/package/lintelstm/path
          mv $REPO_NAME/package/lintelstm/path/* $REPO_NAME/package/lintelstm
