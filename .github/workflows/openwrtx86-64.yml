@@ -4,6 +4,7 @@ on:
   repository_dispatch:
   schedule:
     - cron: 0 21 * * 5
+    
 env:
   rc_rclone: ${{ secrets.RCONFIG }}
   REPO_URL: ${{ secrets.URLS}}
