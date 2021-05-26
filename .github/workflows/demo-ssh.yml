@@ -1,4 +1,4 @@
-name: openwrt-x64
+name: demo-
 on:
   workflow_dispatch:
   repository_dispatch:
