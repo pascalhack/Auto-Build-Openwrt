@@ -53,10 +53,8 @@ jobs:
     - name: Clone source code
       run: | 
          git clone --depth 1 $REPO_URL -b $REPO_BRANCH $REPO_NAME
-         git clone https://github.com/jerrykuku/lua-maxminddb $REPO_NAME/package/lintelstm/lienol/lua-maxminddb
-         git clone https://github.com/jerrykuku/luci-app-vssr $REPO_NAME/package/lintelstm/lienol/luci-app-vssr
          git clone https://github.com/kenzok8/small-package $REPO_NAME/package/lintelstm/path
-         mv $REPO_NAME/package/lintelstm/path/* $REPO_NAME/package/lintelstm/lienol
+         mv $REPO_NAME/package/lintelstm/path/* $REPO_NAME/package/lintelstm
          rm -rf $REPO_NAME/package/lintelstm/path
     - name: Update & Install feeds
       run: |
