@@ -64,7 +64,7 @@ jobs:
       uses: klever1988/cachewrtbuild@main
       with:
         ccache: 'true'
-        prefix: $REPO_NAME
+        prefix: openwrt
     - name: Update & Install feeds
       run: |
        cd $REPO_NAME 
