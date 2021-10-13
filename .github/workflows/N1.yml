@@ -51,7 +51,7 @@ jobs:
     - name: Clone source code
       run: | 
          git clone --depth 1 $REPO_URL -b $REPO_BRANCH $REPO_NAME
-         git clone https://github.com/tuanqing/install-program $REPO_NAME/package/lintelstm/path/install-program
+         git clone https://github.com/tuanqing/install-program $REPO_NAME/package/lintelstm/install-program
          git clone https://github.com/kenzok8/small-package $REPO_NAME/package/lintelstm/path
          mv $REPO_NAME/package/lintelstm/path/* $REPO_NAME/package/lintelstm
          rm -rf $REPO_NAME/package/lintelstm/path
