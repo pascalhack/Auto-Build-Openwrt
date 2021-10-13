@@ -8,26 +8,34 @@ env:
   rc_rclone: ${{ secrets.RCONFIG }}
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
-  REPO_NAME: openwrt
+  REPO_NAME: n1
   CONFIG_FILE: N1.config
   DIY_SH: ${{ secrets.DIY_SH }}
+  UPLOAD_BIN_DIR: false
+  UPLOAD_FIRMWARE: true
+  UPLOAD_COWTRANSFER: true
+  UPLOAD_WETRANSFER: true
+  UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
 jobs:
   build:
     runs-on: ubuntu-18.04
     steps:
     - name: Checkout
+       fetch-depth:0
       uses: actions/checkout@master
     - name: Initialization environment
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
        docker rmi `docker images -q`
-       sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /usr/lib/jvm /opt/ghc
-       sudo -E apt-get -qq update
+       echo "Deleting files, please wait ..."
+       sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php
+       sudo -E apt-get -y purge azure-cli ghc* zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* mysql* php*
+       sudo -E apt-get update
        sudo -E apt-get -qq install $(curl -fsSL git.io/depends-ubuntu-1804)
-       sudo -E apt-get -qq autoremove --purge
-       sudo -E apt-get -qq clean
+       sudo -E apt-get -y autoremove --purge
+       sudo -E apt-get clean
        sudo timedatectl set-timezone "$TZ"
     - name: Configure rclone
       run: |
@@ -43,14 +51,15 @@ jobs:
     - name: Clone source code
       run: | 
          git clone --depth 1 $REPO_URL -b $REPO_BRANCH $REPO_NAME
-         git clone https://github.com/tuanqing/install-program $REPO_NAME/package/install-program
-         git clone https://github.com/kenzok8/small $REPO_NAME/package/lintelstm
-         git clone https://github.com/jerrykuku/lua-maxminddb $REPO_NAME/package/lintelstm/lua-maxminddb
-         git clone https://github.com/jerrykuku/luci-app-vssr $REPO_NAME/package/lintelstm/luci-app-vssr
-         git clone https://github.com/esirplayground/luci-app-v2ray-server  $REPO_NAME/package/lintelstm/luci-app-v2ray-server
-         git clone https://github.com/kenzok8/openwrt-packages $REPO_NAME/package/lintelstm/path
+         git clone https://github.com/tuanqing/install-program $REPO_NAME/package/lintelstm/path/install-program
+         git clone https://github.com/kenzok8/small-package $REPO_NAME/package/lintelstm/path
          mv $REPO_NAME/package/lintelstm/path/* $REPO_NAME/package/lintelstm
          rm -rf $REPO_NAME/package/lintelstm/path
+    - name: Cache
+      uses: klever1988/cachewrtbuild@main
+      with:
+        ccache: 'true'
+        prefix: n1    
     - name: Update & Install feeds
       run: |
         cd $REPO_NAME 
@@ -67,23 +76,62 @@ jobs:
         mv diy.sh $REPO_NAME/diy.sh
         cd $REPO_NAME
         ./diy.sh
-        make defconfig
+        echo -e 'CONFIG_DEVEL=y\nCONFIG_CCACHE=y' >> .config; make defconfig
     - name: Download package
       run: |
         cd $REPO_NAME
-        make download -j8
+        make download -j$(nproc)
+        find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
         
     - name: Compile the firmware
       run: |
         cd $REPO_NAME
-        make -j$(nproc) || make -j8 V=s
+        echo -e "$(nproc) thread build."
+        make -j$(nproc) V=s
+        echo "::set-output name=status::success"
+        grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
+        [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
+        echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+        echo "FILE_TIME=$(date "+%Y年%m月%d日-%H点")" >> $GITHUB_ENV
+    - name: View disk usage
+      if: (!cancelled())
+      run: df -hT
+
+    - name: Upload bin compressed directory
+      uses: actions/upload-artifact@main
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
+      with:
+        name: openwrtx64_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
+        path: n1/bin/packages/x86_64
+    
+    - name: Organize the compiled firmware
+      id: organize
+      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      run: |
+        cd $REPO_NAME/bin/targets/*/*
+        rm -rf packages && mkdir packages
+        find -name "*esxi-flat.vmdk*" | xargs -i mv -f {} packages
+        find -name "*kernel.bin*" | xargs -i mv -f {} packages
+        find -name "*rootfs*" | xargs -i mv -f {} packages
+        find -name "*.manifest*" | xargs -i mv -f {} packages
+        find -name "*vmlinuz*" | xargs -i mv -f {} packages
+        find -name "*esxi.vmdk*" | xargs -i mv -f {} packages
+        rm -rf packages
+        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+        echo "::set-output name=status::success"
+    - name: Upload firmware github
+      uses: actions/upload-artifact@main
+      if: steps.organize.outputs.status == 'success' && !cancelled()
+      with:
+        name: n1x64${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
+        path: ${{ env.FIRMWARE }}        
     - name: img packaging
       run: | 
          git clone https://github.com/tuanqing/mknop
          cd mknop
          cp ../$REPO_NAME/bin/targets/*/*/*.tar.gz openwrt
-         sudo ./gen_openwrt -d -s 880 -k latest
+         sudo ./gen_openwrt -d -s 890 -k latest
          devices=("phicomm-n1" "vplus" "beikeyun" "l1pro" "s905x3")
           cd out
           for x in ${devices[*]}; do
@@ -96,8 +144,8 @@ jobs:
     - name: Upload firmware @ phicomm n1
       uses: actions/upload-artifact@main
       with:
-       name: ${{ env.firmware_phicomm-n1 }}
-       path: ./mknop/out/phicomm-n1 
+        name: ${{ env.firmware_phicomm-n1 }}
+        path: out/phicomm-n1
     - name: Upload GD N1-img
       working-directory: ./mknop
       run: |
@@ -112,7 +160,7 @@ jobs:
         tmp=$(find -name N1-packages*)
         echo $tmp
         sudo rclone sync $tmp GD:bin/IPK
-        
+        rm -rf $tmp
     - name: Upload GD N1-bin
       run: |
         cd $REPO_NAME/bin/targets/*/*
@@ -121,3 +169,4 @@ jobs:
         tmp=$(find -name N1-bin*)
         echo $tmp
         sudo rclone sync $tmp GD:bin/N1 
+        rm -rf $tmp
