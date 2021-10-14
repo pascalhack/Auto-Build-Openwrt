@@ -22,7 +22,6 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - name: Checkout
-       fetch-depth:0
       uses: actions/checkout@master
     - name: Initialization environment
       env:
@@ -54,12 +53,7 @@ jobs:
          git clone https://github.com/tuanqing/install-program $REPO_NAME/package/lintelstm/install-program
          git clone https://github.com/kenzok8/small-package $REPO_NAME/package/lintelstm/path
          mv $REPO_NAME/package/lintelstm/path/* $REPO_NAME/package/lintelstm
-         rm -rf $REPO_NAME/package/lintelstm/path
-    - name: Cache
-      uses: klever1988/cachewrtbuild@main
-      with:
-        ccache: 'true'
-        prefix: n1    
+         rm -rf $REPO_NAME/package/lintelstm/path  
     - name: Update & Install feeds
       run: |
         cd $REPO_NAME 
