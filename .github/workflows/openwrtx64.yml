@@ -147,11 +147,11 @@ jobs:
         tmp=$(find . -name "*.tar.gz")
         echo $tmp
         sudo rclone sync $tmp GD:bin/X64
-    - name: packing op
-      run: |
-        cd openwrt
-        rm -rf bin
-        sudo tar czvf openwrtx64-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz *  
-        tmp=$(find -name openwrtx64*)
-        echo $tmp
-        sudo rclone sync $tmp GD:bin/PSC 
+#    - name: packing op
+#      run: |
+#        cd openwrt
+#        rm -rf bin
+#        sudo tar czvf openwrtx64-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz *  
+#        tmp=$(find -name openwrtx64*)
+#        echo $tmp
+#        sudo rclone sync $tmp GD:bin/PSC
