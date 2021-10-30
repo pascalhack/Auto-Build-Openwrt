@@ -88,6 +88,22 @@ jobs:
         [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
         echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
         echo "FILE_TIME=$(date "+%Y年%m月%d日-%H点")" >> $GITHUB_ENV
+    - name: img packaging
+      run: | 
+         git clone https://github.com/tuanqing/mknop
+         cd mknop
+         cp ../$REPO_NAME/bin/targets/*/*/*.tar.gz openwrt
+         sudo ./gen_openwrt -d -s 890 -k latest
+         devices=("phicomm-n1" "vplus" "beikeyun" "l1pro" "s905x3")
+          cd out
+          for x in ${devices[*]}; do
+            cd $x
+            filename=$(ls | awk -F '.img' '{print $1}')
+            gzip *.img
+            cd ../
+            echo "firmware_$x=$filename" >> $GITHUB_ENV
+          done
+          
     - name: View disk usage
       if: (!cancelled())
       run: df -hT
@@ -120,21 +136,7 @@ jobs:
       with:
         name: n1x64${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE }}        
-    - name: img packaging
-      run: | 
-         git clone https://github.com/tuanqing/mknop
-         cd mknop
-         cp ../$REPO_NAME/bin/targets/*/*/*.tar.gz openwrt
-         sudo ./gen_openwrt -d -s 890 -k latest
-         devices=("phicomm-n1" "vplus" "beikeyun" "l1pro" "s905x3")
-          cd out
-          for x in ${devices[*]}; do
-            cd $x
-            filename=$(ls | awk -F '.img' '{print $1}')
-            gzip *.img
-            cd ../
-            echo "firmware_$x=$filename" >> $GITHUB_ENV
-          done
+        
     - name: Upload firmware @ phicomm n1
       uses: actions/upload-artifact@main
       with:
