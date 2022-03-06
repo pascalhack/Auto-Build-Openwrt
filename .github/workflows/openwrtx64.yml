@@ -67,7 +67,7 @@ jobs:
       uses: klever1988/cachewrtbuild@main
       with:
         ccache: 'true'
-        prefix: $NAME
+        prefix: lex64
     - name: 正在准备安装界面和插件模块中......
       run: |
        cd $REPO_NAME 
