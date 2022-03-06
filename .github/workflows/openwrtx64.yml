@@ -70,7 +70,7 @@ jobs:
         prefix: lex64
     - name: 正在准备安装界面和插件模块中......
       run: |
-       cd $REPO_NAME 
+       cd $NAME 
        ./scripts/feeds update -a
        ./scripts/feeds install -a
        
@@ -88,14 +88,14 @@ jobs:
         echo -e 'CONFIG_DEVEL=y\nCONFIG_CCACHE=y' >> .config; make defconfig
     - name: 下载第三方预编译库......
       run: |
-        cd $REPO_NAME
+        cd $NAME
         make download -j$(nproc)
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
         
     - name:  正在编译中，请3-4小时后查看进度......
       run: |
-        cd $REPO_NAME
+        cd $NAME
         echo -e "$(nproc) thread build."
         make -j$(nproc) V=s
         echo "::set-output name=status::success"
@@ -111,14 +111,14 @@ jobs:
       uses: actions/upload-artifact@main
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
-        name: openwrtx64_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
-        path: openwrt/bin/packages/x86_64
+        name: lex64_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
+        path: lex64/bin/packages/x86_64
     
     - name: 打包文件中......
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
-        cd $REPO_NAME/bin/targets/*/*
+        cd $NAME/bin/targets/*/*
         rm -rf packages && mkdir packages
         find -name "*esxi-flat.vmdk*" | xargs -i mv -f {} packages
         find -name "*kernel.bin*" | xargs -i mv -f {} packages
@@ -133,11 +133,11 @@ jobs:
       uses: actions/upload-artifact@main
       if: steps.organize.outputs.status == 'success' && !cancelled()
       with:
-        name: openwrtx64${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
+        name: lex64${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE }}
     - name: 上传插件包到谷歌网盘......
       run: |
-        cd openwrt/bin/packages/*
+        cd lex64/bin/packages/*
         sudo tar czvf x64-packages-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz * 
         tmp=$(find . -name "*.tar.gz")
         echo $tmp
@@ -145,14 +145,14 @@ jobs:
         
     - name: 上传固件到谷歌网盘......
       run: |
-        cd openwrt/bin/targets/*/*
+        cd lex64/bin/targets/*/*
         sudo tar czvf x64-bin-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz *  
         tmp=$(find . -name "*.tar.gz")
         echo $tmp
         sudo rclone sync $tmp GD:bin/X64
 #    - name: 打包源码到谷歌网盘
 #      run: |
-#        cd openwrt
+#        cd lex64
 #        rm -rf bin
 #        sudo tar czvf openwrtx64-`date +%Y年%m月%d日%H时%M分%S秒`.tar.gz *  
 #        tmp=$(find -name openwrtx64*)
