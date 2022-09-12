@@ -44,15 +44,9 @@ jobs:
         sudo rm -rf ~/work/Auto-Build-Openwrt/Auto-Build-Openwrt/rclone.conf
         sudo rclone mount GD: /mnt/gdrive --copy-links --allow-other --allow-non-empty --umask 000 --daemon & 
         df -h
-#    - name: Start SSH via tmate
-#      uses: P3TERX/ssh2actions@main
-#      env:
- #      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
- #      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-    - name: SSH connection to Actions
-      uses: P3TERX/ssh2actions@v1.0.0
-      if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
+    - name: Start SSH via tmate
+      uses: P3TERX/ssh2actions@main
       env:
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-       
+       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
