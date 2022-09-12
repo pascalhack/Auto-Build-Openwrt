@@ -15,7 +15,7 @@ env:
   TZ: Asia/Shanghai
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-21.04
     if: github.event.repository.owner.id == github.event.sender.id
     steps:
     - name: Checkout
@@ -27,7 +27,7 @@ jobs:
        docker rmi `docker images -q`
        sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /usr/lib/jvm /opt/ghc
        sudo -E apt-get -qq update
-       sudo -E apt-get -qq install $(curl -fsSL git.io/depends-ubuntu-1804)
+       sudo -E apt-get -qq install $(curl -fsSL git.io/depends-ubuntu-2004)
        sudo -E apt-get -qq autoremove --purge
        sudo -E apt-get -qq clean
        sudo timedatectl set-timezone "$TZ"
@@ -44,8 +44,15 @@ jobs:
         sudo rm -rf ~/work/Auto-Build-Openwrt/Auto-Build-Openwrt/rclone.conf
         sudo rclone mount GD: /mnt/gdrive --copy-links --allow-other --allow-non-empty --umask 000 --daemon & 
         df -h
-    - name: Start SSH via tmate
-      uses: P3TERX/ssh2actions@main
+#    - name: Start SSH via tmate
+#      uses: P3TERX/ssh2actions@main
+#      env:
+ #      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+ #      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    - name: SSH connection to Actions
+      uses: P3TERX/ssh2actions@v1.0.0
+      if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
       env:
-       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}    
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+       
