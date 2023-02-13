@@ -34,15 +34,6 @@ jobs:
       run: |
        echo "Free space:"
        df -h  
-
-    - name: remove
-      run: |
-       sudo -E apt-get update
-       sudo -E apt-get install $(curl -fsSL git.io/depends-ubuntu-2004)
-       sudo -E apt-get install fuse -y
-       sudo -E apt-get autoremove --purge
-       sudo -E apt-get clean
-       sudo timedatectl set-timezone "$TZ"
        
     - name: Configure rclone
       run: |
